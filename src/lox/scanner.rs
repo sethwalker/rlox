@@ -49,8 +49,82 @@ impl Scanner {
         let c = self.advance();
         match c {
             '(' => self.add_token(TokenType::LeftParen, Object {}),
+            ')' => self.add_token(TokenType::RightParen, Object {}),
+            '{' => self.add_token(TokenType::LeftBrace, Object {}),
+            '}' => self.add_token(TokenType::RightBrace, Object {}),
+            ',' => self.add_token(TokenType::Comma, Object {}),
+            '.' => self.add_token(TokenType::Dot, Object {}),
+            '-' => self.add_token(TokenType::Minus, Object {}),
+            '+' => self.add_token(TokenType::Plus, Object {}),
+            ';' => self.add_token(TokenType::Semicolon, Object {}),
+            '*' => self.add_token(TokenType::Star, Object {}),
+            '!' => {
+                let token_type = if self.match_char('=') {
+                    TokenType::BangEqual
+                } else {
+                    TokenType::Bang
+                };
+                self.add_token(token_type, Object {});
+            }
+            '=' => {
+                let token_type = if self.match_char('=') {
+                    TokenType::EqualEqual
+                } else {
+                    TokenType::Equal
+                };
+                self.add_token(token_type, Object {});
+            }
+            '<' => {
+                let token_type = if self.match_char('=') {
+                    TokenType::LessEqual
+                } else {
+                    TokenType::Less
+                };
+                self.add_token(token_type, Object {});
+            }
+            '>' => {
+                let token_type = if self.match_char('=') {
+                    TokenType::GreaterEqual
+                } else {
+                    TokenType::Greater
+                };
+                self.add_token(token_type, Object {});
+            }
+            '/' => {
+                if self.match_char('/') {
+                    // A comment goes until the end of the line.
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                } else {
+                    self.add_token(TokenType::Slash, Object {});
+                }
+            }
+            ' ' | '\r' | '\t' => {}
+            '\n' => {
+                self.line += 1;
+            }
             _ => Lox::error(self.line, String::from("Unexpected character.")),
         }
+    }
+
+    fn peek(&self) -> char {
+        if self.is_at_end() {
+            return '\0';
+        }
+        return self.source_chars[self.current as usize];
+    }
+
+    fn match_char(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+        if self.source_chars[self.current as usize] != expected {
+            return false;
+        }
+
+        self.current += 1;
+        return true;
     }
 
     fn advance(&mut self) -> char {
