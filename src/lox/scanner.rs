@@ -108,9 +108,51 @@ impl Scanner {
             '"' => {
                 self.string();
             }
-
+            '0'..='9' => {
+                self.number();
+            }
             _ => Lox::error(self.line, String::from("Unexpected character.")),
         }
+    }
+
+    fn is_digit(&self, c: &char) -> bool {
+        // todo: same range as match above, duplication
+        return ('0'..='9').contains(c);
+    }
+
+    fn number(&mut self) {
+        loop {
+            let c = &self.peek();
+            if self.is_digit(c) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        // Look for a fractional part.
+        if self.peek() == '.' && self.is_digit(&self.peek_next()) {
+            // Consume the "."
+            self.advance();
+
+            // duplication again
+            loop {
+                let c = &self.peek();
+                if self.is_digit(c) {
+                    self.advance();
+                } else {
+                    break;
+                }
+            }
+        }
+
+        let value = self.source_chars[self.start as usize..self.current as usize]
+            .iter()
+            .collect::<String>();
+        self.add_token(
+            TokenType::Number,
+            Some(Object::Num(value.parse::<f64>().unwrap())),
+        );
     }
 
     fn string(&mut self) {
@@ -142,6 +184,13 @@ impl Scanner {
             return '\0';
         }
         return self.source_chars[self.current as usize];
+    }
+
+    fn peek_next(&self) -> char {
+        if self.current as usize + 1 >= self.source_chars.len() {
+            return '\0';
+        }
+        return self.source_chars[self.current as usize + 1];
     }
 
     fn match_char(&mut self, expected: char) -> bool {

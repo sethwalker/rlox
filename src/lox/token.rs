@@ -54,6 +54,7 @@ pub enum TokenType {
 #[derive(Debug)]
 pub enum Object {
     Str(String),
+    Num(f64),
 }
 
 #[derive(Debug)]
