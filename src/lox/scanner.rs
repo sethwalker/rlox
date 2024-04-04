@@ -2,6 +2,7 @@ use crate::lox::token::{Object, Token, TokenType};
 use crate::lox::Lox;
 use std::vec::Vec;
 
+#[derive(Debug)]
 pub struct Scanner {
     source_chars: Vec<char>,
     source: String,
@@ -39,7 +40,7 @@ impl Scanner {
         self.tokens.push(Token::new(
             TokenType::Eof,
             String::from(""),
-            Object {},
+            None,
             self.line,
         ));
         return &self.tokens;
@@ -48,23 +49,23 @@ impl Scanner {
     fn scan_token(&mut self) {
         let c = self.advance();
         match c {
-            '(' => self.add_token(TokenType::LeftParen, Object {}),
-            ')' => self.add_token(TokenType::RightParen, Object {}),
-            '{' => self.add_token(TokenType::LeftBrace, Object {}),
-            '}' => self.add_token(TokenType::RightBrace, Object {}),
-            ',' => self.add_token(TokenType::Comma, Object {}),
-            '.' => self.add_token(TokenType::Dot, Object {}),
-            '-' => self.add_token(TokenType::Minus, Object {}),
-            '+' => self.add_token(TokenType::Plus, Object {}),
-            ';' => self.add_token(TokenType::Semicolon, Object {}),
-            '*' => self.add_token(TokenType::Star, Object {}),
+            '(' => self.add_token(TokenType::LeftParen, None),
+            ')' => self.add_token(TokenType::RightParen, None),
+            '{' => self.add_token(TokenType::LeftBrace, None),
+            '}' => self.add_token(TokenType::RightBrace, None),
+            ',' => self.add_token(TokenType::Comma, None),
+            '.' => self.add_token(TokenType::Dot, None),
+            '-' => self.add_token(TokenType::Minus, None),
+            '+' => self.add_token(TokenType::Plus, None),
+            ';' => self.add_token(TokenType::Semicolon, None),
+            '*' => self.add_token(TokenType::Star, None),
             '!' => {
                 let token_type = if self.match_char('=') {
                     TokenType::BangEqual
                 } else {
                     TokenType::Bang
                 };
-                self.add_token(token_type, Object {});
+                self.add_token(token_type, None);
             }
             '=' => {
                 let token_type = if self.match_char('=') {
@@ -72,7 +73,7 @@ impl Scanner {
                 } else {
                     TokenType::Equal
                 };
-                self.add_token(token_type, Object {});
+                self.add_token(token_type, None);
             }
             '<' => {
                 let token_type = if self.match_char('=') {
@@ -80,7 +81,7 @@ impl Scanner {
                 } else {
                     TokenType::Less
                 };
-                self.add_token(token_type, Object {});
+                self.add_token(token_type, None);
             }
             '>' => {
                 let token_type = if self.match_char('=') {
@@ -88,7 +89,7 @@ impl Scanner {
                 } else {
                     TokenType::Greater
                 };
-                self.add_token(token_type, Object {});
+                self.add_token(token_type, None);
             }
             '/' => {
                 if self.match_char('/') {
@@ -97,15 +98,43 @@ impl Scanner {
                         self.advance();
                     }
                 } else {
-                    self.add_token(TokenType::Slash, Object {});
+                    self.add_token(TokenType::Slash, None);
                 }
             }
             ' ' | '\r' | '\t' => {}
             '\n' => {
                 self.line += 1;
             }
+            '"' => {
+                self.string();
+            }
+
             _ => Lox::error(self.line, String::from("Unexpected character.")),
         }
+    }
+
+    fn string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            Lox::error(self.line, String::from("Unterminated string."));
+            return;
+        }
+
+        // The closing ".
+        self.advance();
+
+        let start = self.start + 1;
+        // Trim the surrounding quotes.
+        let value = self.source_chars[start as usize..self.current as usize - 1]
+            .iter()
+            .collect::<String>();
+        self.add_token(TokenType::String, Some(Object::Str(value)));
     }
 
     fn peek(&self) -> char {
@@ -134,7 +163,7 @@ impl Scanner {
         return self.source_chars[n];
     }
 
-    fn add_token(&mut self, ttype: TokenType, literal: Object) {
+    fn add_token(&mut self, ttype: TokenType, literal: Option<Object>) {
         let text = self.source_chars[self.start as usize..self.current as usize]
             .iter()
             .collect::<String>();

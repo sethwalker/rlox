@@ -52,17 +52,20 @@ pub enum TokenType {
 }
 
 #[derive(Debug)]
-pub struct Object;
+pub enum Object {
+    Str(String),
+}
 
+#[derive(Debug)]
 pub struct Token {
     ttype: TokenType,
     lexeme: String,
-    literal: Object,
+    literal: Option<Object>,
     line: u32,
 }
 
 impl Token {
-    pub fn new(ttype: TokenType, lexeme: String, literal: Object, line: u32) -> Self {
+    pub fn new(ttype: TokenType, lexeme: String, literal: Option<Object>, line: u32) -> Self {
         Self {
             ttype,
             lexeme,
