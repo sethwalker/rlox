@@ -108,15 +108,40 @@ impl Scanner {
             '"' => {
                 self.string();
             }
-            '0'..='9' => {
-                self.number();
+            _ => {
+                if self.is_digit(&c) {
+                    self.number();
+                } else if self.is_alpha(&c) {
+                    self.identifier();
+                } else {
+                    Lox::error(self.line, String::from("Unexpected character."));
+                }
             }
-            _ => Lox::error(self.line, String::from("Unexpected character.")),
         }
     }
 
+    fn identifier(&mut self) {
+        loop {
+            let c = &self.peek();
+            if self.is_alphanumeric(c) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        self.add_token(TokenType::Identifier, None);
+    }
+
+    fn is_alphanumeric(&self, c: &char) -> bool {
+        return self.is_digit(&c) || self.is_alpha(&c);
+    }
+
+    fn is_alpha(&self, c: &char) -> bool {
+        return ('a'..='z').contains(c) || ('A'..='Z').contains(c) || *c == '_';
+    }
+
     fn is_digit(&self, c: &char) -> bool {
-        // todo: same range as match above, duplication
         return ('0'..='9').contains(c);
     }
 
