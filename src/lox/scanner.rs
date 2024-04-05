@@ -1,5 +1,6 @@
 use crate::lox::token::{Object, Token, TokenType};
 use crate::lox::Lox;
+use std::collections::HashMap;
 use std::vec::Vec;
 
 #[derive(Debug)]
@@ -10,12 +11,30 @@ pub struct Scanner {
     start: u32,
     current: u32,
     line: u32,
+    keywords: HashMap<String, TokenType>,
 }
 
 impl Scanner {
     pub fn new(source: &str) -> Self {
         let source_str = source.to_string();
         let source_chars = source_str.chars().collect();
+        let mut keywords = HashMap::new();
+        keywords.insert(String::from("and"), TokenType::And);
+        keywords.insert(String::from("class"), TokenType::Class);
+        keywords.insert(String::from("else"), TokenType::Else);
+        keywords.insert(String::from("false"), TokenType::False);
+        keywords.insert(String::from("for"), TokenType::For);
+        keywords.insert(String::from("fun"), TokenType::Fun);
+        keywords.insert(String::from("if"), TokenType::If);
+        keywords.insert(String::from("nil"), TokenType::Nil);
+        keywords.insert(String::from("or"), TokenType::Or);
+        keywords.insert(String::from("print"), TokenType::Print);
+        keywords.insert(String::from("return"), TokenType::Return);
+        keywords.insert(String::from("super"), TokenType::Super);
+        keywords.insert(String::from("this"), TokenType::This);
+        keywords.insert(String::from("true"), TokenType::True);
+        keywords.insert(String::from("var"), TokenType::Var);
+        keywords.insert(String::from("while"), TokenType::While);
         Self {
             source: source_str,
             source_chars: source_chars,
@@ -23,6 +42,7 @@ impl Scanner {
             start: 0,
             current: 0,
             line: 1,
+            keywords: keywords,
         }
     }
 
@@ -130,7 +150,15 @@ impl Scanner {
             }
         }
 
-        self.add_token(TokenType::Identifier, None);
+        let value = self.source_chars[self.start as usize..self.current as usize]
+            .iter()
+            .collect::<String>();
+
+        if self.keywords.contains_key(&value) {
+            self.add_token(*self.keywords.get(&value).unwrap(), None);
+        } else {
+            self.add_token(TokenType::Identifier, None);
+        }
     }
 
     fn is_alphanumeric(&self, c: &char) -> bool {
