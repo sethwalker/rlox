@@ -1,8 +1,8 @@
-#[derive(Debug)]
-pub struct Lox {}
-
 mod scanner;
 mod token;
+
+#[derive(Debug)]
+pub struct Lox {}
 
 use scanner::Scanner;
 use token::Token;
