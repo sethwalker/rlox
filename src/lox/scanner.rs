@@ -1,5 +1,5 @@
-use crate::lox::token::{Object, Token, TokenType};
-use crate::lox::Lox;
+use super::token::{Object, Token, TokenType};
+use super::Lox;
 use std::collections::HashMap;
 use std::vec::Vec;
 

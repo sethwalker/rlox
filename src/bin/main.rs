@@ -1,18 +1,18 @@
+#[path = "../lox/lib.rs"]
+mod lox;
+
+use lox::Lox;
 use std::env;
 use std::fs;
 use std::io::{self, Write};
 use std::process::ExitCode;
 
-pub mod lox;
-
-use lox::Lox;
-
-fn run_file(path: &str) {
+pub fn run_file(path: &str) {
     let contents = fs::read_to_string(path).expect("Should have been able to read the file");
     Lox::run(&contents);
 }
 
-fn run_prompt() {
+pub fn run_prompt() {
     let stdin = io::stdin();
     let mut input = String::new();
 
